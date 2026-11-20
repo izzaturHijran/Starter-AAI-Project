@@ -17,17 +17,17 @@ Do Low only if time is left, and only if you ask.
 
 | Status | # | Task | Priority | Checks (from requirements §4) |
 |--------|---|------|----------|-------------------------------|
-| To do | 1 | Database: Prisma + SQLite + `User` table | High | Design §1 (feeds AC-12, AC-13) |
-| To do | 2 | Seed the six demo users | High | AC-12, AC-13 |
-| To do | 3 | Session cookie library | High | AC-11, AC-14 |
-| To do | 4 | Protected layout, header and the four role home pages | High | AC-05, AC-06 |
-| To do | 5 | Login page and sign-in | High | AC-01, AC-02, AC-03, AC-04, AC-07 |
-| To do | 6 | Sign out | High | AC-08 |
-| To do | 7 | 30-minute inactivity expiry | High | AC-09, AC-10 |
-| To do | 8 | Root page `/` redirects | High | AC-05 (the `/` case), AC-01 (full flow) |
-| To do | 9 | Middleware quick redirect | Medium | AC-05 (earlier redirect) |
-| To do | 10 | Log failed sign-ins | Low | U10 (requirements §3; no AC) |
-| To do | 11 | Final sweep: lint + walk the whole checklist | High | AC-01 … AC-14 |
+| Done | 1 | Database: Prisma + SQLite + `User` table | High | Design §1 (feeds AC-12, AC-13) |
+| Done | 2 | Seed the six demo users | High | AC-12, AC-13 |
+| Done | 3 | Session cookie library | High | AC-11, AC-14 |
+| Done | 4 | Protected layout, header and the four role home pages | High | AC-05, AC-06 |
+| Done | 5 | Login page and sign-in | High | AC-01, AC-02, AC-03, AC-04, AC-07 |
+| Done | 6 | Sign out | High | AC-08 |
+| Done | 7 | 30-minute inactivity expiry | High | AC-09, AC-10 |
+| Done | 8 | Root page `/` redirects | High | AC-05 (the `/` case), AC-01 (full flow) |
+| Done | 9 | Middleware quick redirect | Medium | AC-05 (earlier redirect) |
+| Done | 10 | Log failed sign-ins | Low | U10 (requirements §3; no AC) |
+| Done | 11 | Final sweep: lint + walk the whole checklist | High | AC-01 … AC-14 |
 
 ---
 
@@ -129,8 +129,10 @@ Do Low only if time is left, and only if you ask.
 - **Goal:** The session dies 30 minutes after the last activity, and any
   activity restarts the clock — so idle laptops are safe and busy users
   are never cut off.
-- **Files:** `src/lib/session.ts` / `src/lib/auth.ts` (change: every
-  verified request re-issues the cookie with expiry 30 minutes ahead).
+- **Files:** `src/proxy.ts` (create: every verified request on a protected
+  path re-issues the cookie with expiry 30 minutes ahead — user-approved
+  placement, since Server Components cannot write cookies; the layout's
+  `requireUser()` stays the real access gate).
 - **Check:** Sign in, leave the app untouched 31 minutes, click any link →
   land on `/login` (AC-09). Sign in again and move between pages every
   20 minutes for an hour → never bounced (AC-10). In DevTools, the
@@ -152,8 +154,10 @@ Do Low only if time is left, and only if you ask.
 - **Goal:** Logged-out requests are turned away at the door by middleware
   instead of loading a page first — pure experience; the Task 4 server
   checks stay the real gate (design §2 rule 9).
-- **Files:** `src/middleware.ts` (create; exact Next 16 naming verified
-  against `node_modules/next/dist/docs/` first).
+- **Files:** `src/proxy.ts` (change: logged-out requests on protected paths
+  are redirected before any page code runs; Next 16 renamed middleware to
+  `proxy.ts` — verified against `node_modules/next/dist/docs/` first, same
+  file as Task 7's session refresh).
 - **Check:** With the cookie deleted, request `/admin` directly → the
   browser arrives at `/login` without the admin page's code running.
   Then re-verify AC-05 and AC-06 still hold **with the middleware

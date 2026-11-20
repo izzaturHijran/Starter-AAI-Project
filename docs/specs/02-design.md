@@ -97,6 +97,39 @@ Wrong-role access (e.g. an Employee typing `/admin`) is refused server-side
 by redirecting to the user's own home page — the other role's page is never
 rendered first.
 
+### Visual design (shared by `/login` and the home pages)
+
+Based on the mockup supplied by the user (a split white card on a lavender
+page). Look only — behaviour, text and checks from §2 stay exactly as they
+are.
+
+- **Page:** light lavender background (≈ `#C9BCEA`); one white card,
+  rounded 24 px corners, soft shadow, centred on the screen.
+- **Login card:** two columns — white form panel (left, ~4/9) and a purple→
+  blue gradient hero (right, ~5/9); stacked on small screens.
+  - Form panel: brand top-left (small solid deep-purple circle with "B" +
+    "Budiman HRMS"); centred indigo (≈ `#5146C6`) "Login" heading; Email
+    and Password are underline-only inputs (no box border, grey
+    placeholders, labels kept for screen readers); the submit button is a
+    deep-purple (≈ `#4A0AAE`) full-width **pill** with white uppercase
+    text ("SIGN IN"). The error ("…is incorrect") and signed-out messages
+    keep their text and `role="alert"`/`role="status"`, restyled as
+    rounded strips.
+  - Hero panel: diagonal gradient (violet-600 → blue-500), large white
+    "Welcome to **Budiman HRMS**" (light weight, last words bold), one
+    muted-white subtitle line, and three static decorative dots at the
+    bottom-left.
+- **Home card:** white card on lavender; inside it a slim header bar
+  (brand left; right: user name, purple role-badge pill, deep-purple pill
+  "SIGN OUT" button) and a body holding the same gradient hero panel with
+  the "{Role} home" heading and the welcome line.
+- **Not copied from the mockup, on purpose:** "Don't have an account? Sign
+  Up", "Forgot Your Password?" and the live carousel dots. The HRMS has no
+  sign-up or password-reset feature (§2 rule 10), so those would be dead
+  links — links that *do something* (nothing), which changes what the
+  screens do. The mockup's photograph is replaced by the CSS gradient: no
+  image asset to licence and nothing to load.
+
 ## 5. Where the code lives
 
 | Folder / file | What's in it |
@@ -108,13 +141,14 @@ rendered first.
 | `src/lib/auth.ts` | `signIn` logic (find user, bcrypt compare — dummy compare for unknown emails) and `requireUser()` / `requireRole(role)` helpers every protected page and action calls |
 | `src/app/login/page.tsx` | The login form screen |
 | `src/app/login/actions.ts` | Server actions: `signIn` (sets the cookie, redirects to the role's home) and `signOut` (deletes the cookie, back to `/login`) |
-| `src/app/(protected)/layout.tsx` | Layout wrapping all signed-in pages: calls `requireUser()`, renders the header (name, role, "Sign out"), sets no-store headers |
+| `src/app/(protected)/layout.tsx` | Layout wrapping all signed-in pages: calls `requireUser()`, renders the lavender page, white card and header (brand, name, role badge, "Sign out") in the shared visual style (§4) |
 | `src/app/(protected)/employee/page.tsx` | Employee home placeholder |
 | `src/app/(protected)/supervisor/page.tsx` | Supervisor home placeholder |
 | `src/app/(protected)/hr/page.tsx` | HR home placeholder |
 | `src/app/(protected)/admin/page.tsx` | Admin home placeholder |
 | `src/app/page.tsx` | The redirect-only root page (`/`) |
-| `src/middleware.ts` | Quick redirect of logged-out requests to `/login` (experience only — §2 rule 9). Exact file name for Next 16 is verified against `node_modules/next/dist/docs/` before coding |
+| `src/proxy.ts` | Next 16 renamed middleware to `proxy.ts` (verified in `node_modules/next/dist/docs/`): quick redirect of logged-out requests on protected paths to `/login` (experience only — §2 rule 9) and the sliding 30-minute cookie refresh (§2 rule 6) |
+| `next.config.ts` | `headers()`: `no-store, must-revalidate` on `/employee|supervisor|hr|admin` (Server Components cannot set headers, so cache policy lives here) |
 | `.env` (gitignored), `.env.example` | `SESSION_SECRET` — real value in `.env`, a placeholder in `.env.example` so the repo explains itself |
 
 ## 6. Security (in plain words)
