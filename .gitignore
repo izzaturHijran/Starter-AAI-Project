@@ -1,0 +1,9 @@
+# Secrets and local data — must never be committed (02-design.md §6, AC-14)
+.env
+dev.db
+
+# Build output and dependencies
+node_modules/
+.next/
+next-env.d.ts
+*.tsbuildinfo
