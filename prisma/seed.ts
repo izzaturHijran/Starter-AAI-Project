@@ -1,5 +1,7 @@
 // Loads the six demo users from docs/specs/02-design.md Reference B
-// (HRMS doc §7.2). Safe to run twice: upserts by email.
+// (HRMS doc §7.2) plus the three Reference-D test users (Task 13 /
+// interview-approved) so the division rules and the HR fallback can be
+// exercised. Safe to run twice: upserts by email.
 // The plain password exists only here, in memory, just long enough to be
 // hashed — the database stores only the bcrypt hash (02-design.md §2 rule 4).
 import { PrismaClient } from "@prisma/client";
@@ -57,6 +59,31 @@ const demoUsers = [
     role: "Admin",
     division: "Admin",
     designation: "Admin Manager",
+  },
+  // Reference D — test users (02-design.md, Leave Request section)
+  {
+    name: "Employee 2",
+    icNumber: "00-200101",
+    email: "employee-2@budiman.com",
+    role: "Employee",
+    division: "Marketing",
+    designation: "Marketing Assistant",
+  },
+  {
+    name: "Supervisor 3",
+    icNumber: "00-200202",
+    email: "supervisor-3@budiman.com",
+    role: "Supervisor",
+    division: "Marketing",
+    designation: "Marketing Manager",
+  },
+  {
+    name: "Employee 3",
+    icNumber: "00-200303",
+    email: "employee-3@budiman.com",
+    role: "Employee",
+    division: "Operations",
+    designation: "Operations Executive",
   },
 ];
 

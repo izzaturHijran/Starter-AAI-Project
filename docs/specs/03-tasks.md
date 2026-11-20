@@ -185,3 +185,229 @@ Do Low only if time is left, and only if you ask.
   §4 top to bottom: AC-01 → AC-14 all pass, using only the six demo
   accounts and `password123`. `git log` shows one Conventional Commit per
   task.
+
+---
+
+# Budiman HRMS – Tasks (Leave Request)
+
+> **Scope:** the Leave Request module, per the "Requirements (Leave
+> Request)" and "Design (Leave Request)" sections just added. Login tasks
+> 1–11 above stay Done and untouched.
+>
+> Same way of working: one task at a time, in order, High first; before
+> Next.js code the AI reads the relevant guide in
+> `node_modules/next/dist/docs/`; Conventional Commits per task; the AI
+> flips Status to Done when a task's check passes.
+>
+> **Priority.** Every task is **High**, **Medium** or **Low**. Do High
+> first. Do Low only if time is left, and only if you ask.
+
+| Status | # | Task | Priority | Checks (from requirements) |
+|--------|---|------|----------|----------------------------|
+| Done | 12 | Database: `LeaveRequest` table + enums | High | Design §1 (feeds AC-15 … AC-33) |
+| Done | 13 | Seed the three extra demo users | High | AC-17, AC-18, AC-25, AC-26 |
+| Done | 14 | Status machine + server validators (`src/lib/leave.ts`) | High | AC-16, AC-33 |
+| Done | 15 | New request form: submit with validated signer | High | AC-15, AC-16, AC-17, AC-18 |
+| Done | 16 | Employee list + own detail page | High | AC-25 |
+| Done | 17 | Supervisor queue + sign / reject with remark | High | AC-19, AC-20, AC-26 |
+| Done | 18 | Send to HR (shared queue) | High | AC-21 |
+| Done | 19 | HR queue + approve / reject, decider recorded, no self-deciding | High | AC-22, AC-23, AC-24, AC-27 |
+| Done | 20 | Styled confirmation modal + success banners on every action | High | AC-28 |
+| Done | 21 | Withdraw a request | Medium | AC-30, AC-31 |
+| Done | 22 | Admin table + read-only detail | Medium | AC-29 |
+| Done | 23 | Copy to new request | Low | AC-32 |
+| Done | 24 | Final sweep: lint + walk the whole leave checklist | High | AC-15 … AC-33 |
+
+---
+
+## Task 12 – Database: `LeaveRequest` table + enums *(High)*
+
+- **Goal:** The database holds leave requests exactly as designed: one table
+  with every field of design §1, the seven-status and five-type enums, and
+  real links to `User` for employee, signer and HR officer.
+- **Files:** `prisma/schema.prisma` (change: `LeaveRequest` model + `LeaveType`
+  / `Status` enums per design §1 and Reference C), new migration.
+- **Check:** Run `npx prisma migrate dev` and open Prisma Studio: the
+  `LeaveRequest` table shows all 15 fields of design §1 with the enums
+  offering exactly Reference C's values; relations point at `User` (a
+  request naming a nonexistent `employeeId` is refused). The existing six
+  users are still there. `git status` stays clean of `.env`/`dev.db`.
+
+## Task 13 – Seed the three extra demo users *(High)*
+
+- **Goal:** One command adds the Reference-D test users so every division
+  rule can be exercised; the original six are untouched and the seed still
+  re-runs safely.
+- **Files:** `prisma/seed.ts` (change: three new upsert-by-email users from
+  design Reference D — Marketing employee + supervisor, Operations employee).
+- **Check:** `npx prisma db seed` twice: both succeed, Studio shows nine
+  users total — the six of Reference B unchanged plus Employee 2, Supervisor
+  3 and Employee 3 with the right divisions/designations and bcrypt hashes
+  (search the SQLite file for `password123` → nothing). All three log in
+  through `/login` (AC-17/AC-18 prerequisites).
+
+## Task 14 – Status machine + server validators *(High)*
+
+- **Goal:** One tested library owns every leave rule — allowed transitions,
+  permission checks (owner / signer / HR officer / no-self-deciding /
+  fallback validation) and input validators — so no screen invents its own
+  rules.
+- **Files:** `src/lib/leave.ts` (create), per design §5.
+- **Check:** A throwaway `npx tsx` script (deleted after, not committed)
+  proves: every legal transition in design §2 rule 1 is accepted and every
+  illegal combination is refused (e.g. Sign while Signed, decide a Withdrawn
+  one, owner sends to HR while Pending supervisor, the HR signer deciding
+  their own signature); validator refuses end-before-start, blank Other
+  text, remark > 200 chars, a signer who is not a same-division Supervisor,
+  and an HR signer when the division HAS a supervisor.
+
+## Task 15 – New request form: submit with validated signer *(High)*
+
+- **Goal:** An Employee can submit a valid request that lands as Pending
+  supervisor with the right signer — and every bad submission is stopped on
+  the server, not just the screen.
+- **Files:** `src/app/(protected)/employee/new/page.tsx` (create),
+  `src/app/(protected)/employee/actions.ts` (create: `createRequest`), plus
+  a `New request` pill on `/employee` linking to it.
+- **Check:** As `employee-1` (AC-15): New request → type Annual, dates,
+  picker lists only Supervisor 1 and Supervisor 2 → submit → success, row
+  `status = PendingSupervisor`, `submittedAt` set, appears on `/employee`.
+  (AC-16): end-before-start, blank dates, blank Other text → refused and
+  values kept; a DevTools-posted `status=Approved` field is ignored — still
+  Pending supervisor. (AC-17): posting `supervisorId` of Supervisor 3 as
+  employee-1 → error, nothing saved. (AC-18): as `employee-3` the picker
+  shows HR 1/HR 2 with the stand-in note; submitting with HR 1 saves HR 1 as
+  `supervisorId`. No confirmation modal yet — that is Task 20.
+
+## Task 16 – Employee list + own detail page *(High)*
+
+- **Goal:** Employees see exactly their own requests with badges, dates and
+  remarks, and a detail page of the full record; anyone else gets
+  page-not-found.
+- **Files:** `src/app/(protected)/employee/page.tsx` (change: own list,
+  newest first, status badges), `src/app/(protected)/employee/[id]/page.tsx`
+  (create), `src/components/status-badge.tsx` (create).
+- **Check:** (AC-25) Create one request as `employee-1` and one as
+  `employee-2`: each list shows only their own (type, dates, badge, remark,
+  newest first); opening the other's `/employee/[id]` URL → page-not-found
+  with no data of it rendered. Detail shows type (incl. Other text), dates,
+  signer, and the submitted date. Buttons per machine rows appear (Send to
+  HR only on Signed; no actions needed yet — wired in Tasks 18/21).
+
+## Task 17 – Supervisor queue + sign / reject with remark *(High)*
+
+- **Goal:** A supervisor sees only what is addressed to them and can sign or
+  reject it; rejections carry a required remark and become final.
+- **Files:** `src/app/(protected)/supervisor/page.tsx` (change: queue then
+  history), `src/app/(protected)/supervisor/[id]/page.tsx` +
+  `actions.ts` (create: `sign`, `rejectBySupervisor`).
+- **Check:** (AC-19) As `supervisor-1`: employee-1's Pending request sits in
+  the queue → Sign → `status = Signed`, `signedAt` set; as employee-1 the
+  list shows Signed. (AC-20) Reject with remark empty → screen refuses AND a
+  DevTools-posted empty remark is refused by the server; with remark →
+  `RejectedBySupervisor`, remark visible to the employee, no buttons left
+  for anyone. (AC-26) `supervisor-3` never sees that request (not in list;
+  its detail URL → page-not-found); `supervisor-1`'s list shows only
+  requests where they are the signer.
+
+## Task 18 – Send to HR *(High)*
+
+- **Goal:** The owner moves a Signed request into the shared HR queue, and
+  only the owner, and only when Signed.
+- **Files:** `src/app/(protected)/employee/actions.ts` (change: `sendToHr`),
+  row/detail button on `/employee` and `/employee/[id]`.
+- **Check:** (AC-21) As `employee-1`, "Send to HR" appears only on Signed
+  requests → action → `status = PendingHR`, `sentToHrAt` set, request now
+  topmost in `/hr`'s queue (any officer). Posting send for a Pending
+  supervisor or an Approved request via DevTools → refused, status
+  unchanged; `employee-2` posting employee-1's request id → refused.
+
+## Task 19 – HR queue + approve / reject, decider recorded, no self-deciding *(High)*
+
+- **Goal:** Any HR officer decides requests in the shared queue — except the
+  one who signed via the fallback — and the record shows who decided.
+- **Files:** `src/app/(protected)/hr/page.tsx` (change: queue + full list
+  with "you signed this" flags), `src/app/(protected)/hr/[id]/page.tsx` +
+  `actions.ts` (create: `approve`, `rejectByHr`).
+- **Check:** (AC-22) As `hr-2`, Approve the Pending HR request → `Approved`,
+  `hrOfficerId` = hr-2, `decidedAt` set; employee sees "decided by HR 2".
+  (AC-23) As `hr-1`, reject: empty remark refused by screen and server; with
+  remark → `RejectedByHR` with reason + decider shown. (AC-24) `employee-3` submits
+  with HR 1 as signer, hr-1 signs it, `employee-3` sends it to HR: it then
+  shows hr-1 the flag and NO buttons; hr-1's DevTools-posted approve of it
+  is refused; hr-2 decides it normally. (AC-27) `/hr` shows the queue newest-first on top, then every
+  request ever submitted, including supervisor rejections, with statuses and
+  remarks visible.
+
+## Task 20 – Styled confirmation modal + success banners *(High)*
+
+- **Goal:** FR-07 in its agreed look *(interview)*: every action opens the
+  lavender-overlay modal first and reports with a green banner after — and
+  Cancel truly cancels.
+- **Files:** `src/components/confirm-modal.tsx` + `src/components/success-banner.tsx`
+  (create), wire into submit, sign, both rejects (remark box inside the
+  modal), send to HR, approve, and withdraw (Task 21's button uses it from
+  the start); the four home/detail pages (change: read `?msg=` keys).
+- **Check:** (AC-28) Walk every action as its role: modal appears BEFORE
+  anything happens, Cancel leaves list and database unchanged (re-open the
+  row to confirm); Confirm shows the matching green banner naming the
+  action, with `role="status"`; the text comes only from the fixed message
+  keys — typing a `?msg=<script>…` URL shows nothing custom. Reject modals
+  keep their required remark box; empty confirm stays refused.
+- **Note:** banner/error colours and modal layout follow design §4 visual
+  design; server checks of Tasks 15–19 stay the real gate.
+
+## Task 21 – Withdraw a request *(Medium)*
+
+- **Goal:** The owner can withdraw their own request while Pending
+  supervisor or Signed; it becomes final and stays in history.
+- **Files:** `src/app/(protected)/employee/actions.ts` (change: `withdraw`),
+  buttons on list rows and `/employee/[id]`.
+- **Check:** (AC-30) As `employee-1`: Withdraw shows only on Pending
+  supervisor / Signed → confirm modal → `Withdrawn`, `decidedAt` set,
+  banner, still listed in history; buttons gone on Pending HR / Approved /
+  Rejected; DevTools-posted withdraw of a Pending HR row → refused.
+  (AC-31) `employee-2` posting employee-1's request id → refused; opening
+  it → page-not-found.
+
+## Task 22 – Admin table + read-only detail *(Medium)*
+
+- **Goal:** The Admin audits everything: one table of all requests, newest
+  first, with signer and decider, and a detail that cannot change anything.
+- **Files:** `src/app/(protected)/admin/page.tsx` (change: the table),
+  `src/app/(protected)/admin/[id]/page.tsx` (create, no actions imported).
+- **Check:** (AC-29) As `admin@budiman.com`: the table lists every request
+  — including Withdrawn and both rejection kinds — newest submitted first,
+  with employee, division, type, dates, status badge, signer, HR officer;
+  row click → read-only detail with remarks and the dates trail. No button
+  in the markup; posting a sign/approve/withdraw action as admin → refused
+  by the role check. (Status/division filters are Low — only if time
+  remains, per the requirements §5.)
+
+## Task 23 – Copy to new request *(Low)*
+
+- **Goal:** One click rebooks any past request: the form opens prefilled and
+  submitting creates a brand-new request.
+- **Files:** `src/app/(protected)/employee/page.tsx` + `[id]/page.tsx`
+  (change: Copy-to-new links), `src/app/(protected)/employee/new/page.tsx`
+  (change: read prefill query params).
+- **Check:** (AC-32) From a Rejected or Approved own request → Copy to new
+  → the form shows the original type, dates and (where still legal) signer,
+  plus the Other text when set; submit → a new `PendingSupervisor` row; the
+  original is byte-for-byte unchanged. Same dates as an existing request are
+  accepted (no dedupe). Prefill cannot inject a signer outside rule 3 —
+  a hand-edited `supervisorId` param is re-validated by the same Task 14
+  checks as any other submission.
+
+## Task 24 – Final sweep: lint + walk the whole leave checklist *(High)*
+
+- **Goal:** The leave module is finished and verifiably matches the specs:
+  lint clean, every AC-15 → AC-33 check re-run in order, tasks marked Done,
+  one Conventional Commit per task.
+- **Files:** None new — fixes only, if a check fails (spec first, then
+  code).
+- **Check:** `npm run lint` passes with no errors. Walk the requirements
+  "Acceptance checklist (leave requests)" top to bottom: AC-15 → AC-33 all
+  pass using only the nine seeded accounts and `password123` (login checks
+  AC-01 → AC-14 re-spot-checked along the way). `npx prisma db seed` re-runs
+  cleanly. `git log` shows one Conventional Commit per task.
