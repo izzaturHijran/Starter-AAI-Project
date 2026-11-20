@@ -1,9 +1,11 @@
-// The default home page. Replace it when you build the app.
-export default function Home() {
-  return (
-    <main>
-      <h1>Budiman HRMS</h1>
-      <p>The project is set up and running. Nothing is built yet.</p>
-    </main>
-  );
+import { redirect } from "next/navigation";
+import { getCurrentUser, homePathFor } from "@/lib/auth";
+
+// The bare address is signposts only: logged out → login, logged in → own home.
+export default async function Home() {
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect("/login");
+  }
+  redirect(homePathFor(user.role));
 }
