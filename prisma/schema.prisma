@@ -1,0 +1,25 @@
+// Budiman HRMS — data model. Login module only for now; LeaveRequest is
+// added with the leave module spec (docs/specs/02-design.md §1).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// One row per person who can log in (02-design.md §1).
+// SQLite has no enum type, so role/division are text validated in code.
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  icNumber     String // format xx-xxxxxx, validated in code
+  email        String   @unique // login name, always @budiman.com
+  passwordHash String // bcrypt hash only — never a plain password
+  role         String // Employee | Supervisor | HR | Admin
+  division     String
+  designation  String
+  createdAt    DateTime @default(now())
+}
