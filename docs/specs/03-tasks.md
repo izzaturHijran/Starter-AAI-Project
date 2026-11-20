@@ -204,19 +204,19 @@ Do Low only if time is left, and only if you ask.
 
 | Status | # | Task | Priority | Checks (from requirements) |
 |--------|---|------|----------|----------------------------|
-| To do | 12 | Database: `LeaveRequest` table + enums | High | Design §1 (feeds AC-15 … AC-33) |
-| To do | 13 | Seed the three extra demo users | High | AC-17, AC-18, AC-25, AC-26 |
-| To do | 14 | Status machine + server validators (`src/lib/leave.ts`) | High | AC-16, AC-33 |
-| To do | 15 | New request form: submit with validated signer | High | AC-15, AC-16, AC-17, AC-18 |
-| To do | 16 | Employee list + own detail page | High | AC-25 |
-| To do | 17 | Supervisor queue + sign / reject with remark | High | AC-19, AC-20, AC-26 |
-| To do | 18 | Send to HR (shared queue) | High | AC-21 |
-| To do | 19 | HR queue + approve / reject, decider recorded, no self-deciding | High | AC-22, AC-23, AC-24, AC-27 |
-| To do | 20 | Styled confirmation modal + success banners on every action | High | AC-28 |
-| To do | 21 | Withdraw a request | Medium | AC-30, AC-31 |
-| To do | 22 | Admin table + read-only detail | Medium | AC-29 |
-| To do | 23 | Copy to new request | Low | AC-32 |
-| To do | 24 | Final sweep: lint + walk the whole leave checklist | High | AC-15 … AC-33 |
+| Done | 12 | Database: `LeaveRequest` table + enums | High | Design §1 (feeds AC-15 … AC-33) |
+| Done | 13 | Seed the three extra demo users | High | AC-17, AC-18, AC-25, AC-26 |
+| Done | 14 | Status machine + server validators (`src/lib/leave.ts`) | High | AC-16, AC-33 |
+| Done | 15 | New request form: submit with validated signer | High | AC-15, AC-16, AC-17, AC-18 |
+| Done | 16 | Employee list + own detail page | High | AC-25 |
+| Done | 17 | Supervisor queue + sign / reject with remark | High | AC-19, AC-20, AC-26 |
+| Done | 18 | Send to HR (shared queue) | High | AC-21 |
+| Done | 19 | HR queue + approve / reject, decider recorded, no self-deciding | High | AC-22, AC-23, AC-24, AC-27 |
+| Done | 20 | Styled confirmation modal + success banners on every action | High | AC-28 |
+| Done | 21 | Withdraw a request | Medium | AC-30, AC-31 |
+| Done | 22 | Admin table + read-only detail | Medium | AC-29 |
+| Done | 23 | Copy to new request | Low | AC-32 |
+| Done | 24 | Final sweep: lint + walk the whole leave checklist | High | AC-15 … AC-33 |
 
 ---
 

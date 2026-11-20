@@ -350,7 +350,7 @@ name, role badge, Sign out) on the lavender page + white card.
 | `/supervisor` | Supervisor | Top: to-sign queue (Pending supervisor addressed to me, oldest first so nothing waits unfairly). Below: every request ever addressed to me. Columns: employee, division, type, dates, status badge, remark when set, submitted date. Rows link to detail | To do |
 | `/supervisor/[id]` | Supervisor (assigned signer only) | Full record; while Pending supervisor: Sign pill, Reject pill (opens the modal with a required remark box). After acting: the record read-only with what was decided | To do |
 | `/hr` | HR | Top: shared Pending HR queue (any officer except their own signatures), newest first. Below: every request ever submitted, including supervisor rejections. Rows flagged "you signed this" carry no action links into deciding | To do |
-| `/hr/[id]` | HR (any officer) | Full record. If Pending HR and you did not sign it: Approve pill, Reject pill (modal with required remark). If you signed it: "you signed this request" flag, no buttons | To do |
+| `/hr/[id]` | HR (any officer) | Full record. If Pending supervisor and you are the assigned fallback signer: Sign pill (the only place an HR fallback signer signs). If Pending HR and you did not sign it: Approve pill, Reject pill (modal with required remark). If you signed it: "you signed this request" flag, no buttons | To do |
 | `/admin` | Admin | One table, every request newest submitted first: employee, division, type, start/end, status badge, signer, HR officer, submitted/decided dates. Row click → detail. (Status/division filters are Low — build only if time remains) | To do |
 | `/admin/[id]` | Admin | Same full record as `/employee/[id]`, strictly read-only: no buttons exist in the markup at all | To do |
 
@@ -385,7 +385,7 @@ name, role badge, Sign out) on the lavender page + white card.
 | `src/app/(protected)/supervisor/page.tsx` | (change) to-sign queue + history list |
 | `src/app/(protected)/supervisor/[id]/page.tsx` + `actions.ts` | (create) signer detail; `sign`, `rejectBySupervisor` actions (remark checked server-side; non-signers refused) |
 | `src/app/(protected)/hr/page.tsx` | (change) shared queue + full record list with "you signed this" flags |
-| `src/app/(protected)/hr/[id]/page.tsx` + `actions.ts` | (create) HR detail; `approve`, `rejectByHr` actions (decider recorded from the session; signer self-check) |
+| `src/app/(protected)/hr/[id]/page.tsx` + `actions.ts` | (create) HR detail; `sign` (fallback signer only), `approve`, `rejectByHr` actions (decider recorded from the session; signer self-check) |
 | `src/app/(protected)/admin/page.tsx` | (change) the all-requests table |
 | `src/app/(protected)/admin/[id]/page.tsx` | (create) read-only detail — import-only, no actions module |
 | `src/components/status-badge.tsx` | (create) badge per Reference C, one colour map |
