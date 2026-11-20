@@ -14,11 +14,6 @@ export default async function SupervisorHome() {
         Welcome, {user.name}. Leave request features arrive with the next
         spec section.
       </p>
-      <div aria-hidden className="mt-auto flex gap-2 pt-16">
-        <span className="h-1.5 w-6 rounded-full bg-white" />
-        <span className="h-1.5 w-6 rounded-full bg-white/40" />
-        <span className="h-1.5 w-6 rounded-full bg-white/40" />
-      </div>
     </section>
   );
 }

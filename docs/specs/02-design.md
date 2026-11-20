@@ -122,7 +122,8 @@ are.
 - **Home card:** white card on lavender; inside it a slim header bar
   (brand left; right: user name, purple role-badge pill, deep-purple pill
   "SIGN OUT" button) and a body holding the same gradient hero panel with
-  the "{Role} home" heading and the welcome line.
+  the "{Role} home" heading and the welcome line — without the decorative
+  dots (user request, 2026-11-20; the dots stay only on the login hero).
 - **Not copied from the mockup, on purpose:** "Don't have an account? Sign
   Up", "Forgot Your Password?" and the live carousel dots. The HRMS has no
   sign-up or password-reset feature (§2 rule 10), so those would be dead
