@@ -22,4 +22,34 @@ model User {
   division     String
   designation  String
   createdAt    DateTime @default(now())
+
+  submitted LeaveRequest[] @relation("EmployeeRequests")
+  signed    LeaveRequest[] @relation("SupervisorRequests")
+  decided   LeaveRequest[] @relation("HrDecided")
+}
+
+// One row per leave request (02-design.md §1, Leave Request section).
+// SQLite has no enum type (02-design.md §3 uses text (enum) values): the
+// status/leaveType values are the fixed Reference C lists validated in code
+// — same pattern as User.role/division. status is server-managed only.
+model LeaveRequest {
+  id               Int       @id @default(autoincrement())
+  employeeId       Int // set by the server from the session, never from a form
+  supervisorId     Int // Supervisor in the submitter's division, or HR when the division has none (§2 rule 3)
+  leaveType        String // Annual | Maternity | Unpaid | Compassionate | Other
+  otherLeaveType   String? // required when leaveType = Other, max 200 chars (checked in code)
+  startDate        DateTime // whole days; endDate >= startDate (checked in code)
+  endDate          DateTime
+  status           String // PendingSupervisor | Signed | PendingHR | Approved | RejectedBySupervisor | RejectedByHR | Withdrawn
+  supervisorRemark String? // required when the signer rejects (checked in code)
+  hrOfficerId      Int? // the HR officer who decided, set at decision time
+  hrRemark         String? // required when HR rejects (checked in code)
+  submittedAt      DateTime  @default(now())
+  signedAt         DateTime?
+  sentToHrAt       DateTime?
+  decidedAt        DateTime? // set at any final status
+
+  employee   User  @relation("EmployeeRequests", fields: [employeeId], references: [id])
+  supervisor User  @relation("SupervisorRequests", fields: [supervisorId], references: [id])
+  hrOfficer  User? @relation("HrDecided", fields: [hrOfficerId], references: [id])
 }
